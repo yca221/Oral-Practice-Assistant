@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <!-- 這行是響應式設計的關鍵，確保網頁寬度等於裝置寬度 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oral Practice Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .group-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .group-btn.active {
+            background-color: #10B981; /* emerald-500 */
+            color: white;
+            font-weight: bold;
+            transform: scale(1.05);
+        }
+        .star-rating .star {
+            color: #d1d5db; /* gray-400 */
+            font-size: 2rem;
+            transition: color 0.2s;
+        }
+        @media (min-width: 640px) {
+            .star-rating .star {
+                font-size: 2.5rem;
+            }
+        }
+        .star-rating .star.filled {
+            color: #f59e0b; /* amber-500 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+    <div class="w-full max-w-4xl bg-white shadow-lg flex flex-col flex-grow sm:rounded-2xl sm:mx-auto sm:my-4">
+        <header class="bg-emerald-500 p-4 sm:p-6 text-center rounded-t-2xl">
+            <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-wider">Oral Practice Assistant</h1>
+            <p class="text-emerald-100 mt-1 text-sm sm:text-base">Your best AI partner for English learning!</p>
+        </header>
+
+        <main class="p-4 sm:p-6 lg:p-8 relative flex-grow overflow-y-auto">
+            <!-- Student Info Area -->
+            <div id="user-info-area" class="space-y-6">
+                <div class="text-center">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">開始練習前</h2>
+                    <p class="text-gray-500 mt-1">請輸入你的班級和姓名</p>
+                </div>
+                <div class="max-w-sm mx-auto space-y-4">
+                    <div>
+                        <label for="student-class-input" class="block text-sm font-medium text-gray-700">班級</label>
+                        <input type="text" id="student-class-input" class="mt-1 w-full p-3 border-2 border-gray-300 rounded-lg text-base sm:text-lg focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400" placeholder="例如：三年二班">
+                    </div>
+                    <div>
+                        <label for="student-name-input" class="block text-sm font-medium text-gray-700">姓名</label>
+                        <input type="text" id="student-name-input" class="mt-1 w-full p-3 border-2 border-gray-300 rounded-lg text-base sm:text-lg focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400" placeholder="例如：王小明">
+                    </div>
+                    <button onclick="startPractice()" class="w-full bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg hover:bg-emerald-600 transition-colors">開始練習</button>
+                </div>
+            </div>
+
+            <!-- Main Practice Area -->
+            <div id="main-practice-container" class="hidden space-y-6">
+                <div class="text-center">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">中文說英文</h2>
+                    <p class="text-gray-500 mt-1">選擇一個群組，開始你的英文學習之旅！</p>
+                </div>
+                
+                <!-- Group Selection -->
+                <div class="border-t border-b py-4">
+                    <h3 class="text-lg font-semibold text-center text-gray-700 mb-3">選擇練習群組</h3>
+                    <div id="t1-group-selection" class="flex flex-wrap justify-center gap-2">
+                        <!-- Group buttons will be generated here -->
+                    </div>
+                </div>
+
+                <div id="t1-practice-area" class="hidden space-y-4">
+                    <div class="flex-grow relative">
+                        <input type="text" id="t1-input" class="w-full p-3 pr-10 border-2 border-gray-300 rounded-lg text-base sm:text-lg focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400" placeholder="輸入中文，或按「隨機詞彙」">
+                        <button id="t1-mic-btn" onclick="startChineseRecognition()" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-emerald-500" title="用說的輸入中文">
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm5 8.25V15a.75.75 0 01-1.5 0v-2.75A4.5 4.5 0 005.5 8V4a.5.5 0 011 0v4a3.5 3.5 0 007 0V4a.5.5 0 011 0v4a4.5 4.5 0 01-4.5 4.25z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+                        <button onclick="getNextWord()" class="bg-teal-500 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg hover:bg-teal-600 transition-colors">隨機詞彙</button>
+                        <button onclick="translateAndSpeak()" class="bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg hover:bg-emerald-600 transition-colors">翻譯並朗讀</button>
+                    </div>
+                </div>
+
+                <div id="t1-result-area" class="hidden text-center p-4 sm:p-6 bg-emerald-50 rounded-lg space-y-4">
+                    <div>
+                        <p class="text-gray-500">中文原文</p>
+                        <p id="t1-chinese-output" class="text-xl sm:text-2xl font-semibold text-gray-700"></p>
+                    </div>
+                    <div>
+                        <p class="text-emerald-600">英文翻譯</p>
+                        <p id="t1-english-output" class="text-2xl sm:text-3xl font-bold text-emerald-700"></p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4">
+                        <button onclick="repeatAudio('t1-english-output')" class="bg-sky-500 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg hover:bg-sky-600 transition-colors">
+                            <span class="mr-2">🔊</span>再說一次
+                        </button>
+                        <button id="t1-record-btn" onmousedown="startEnglishRecognition()" onmouseup="stopRecognition()" ontouchstart="startEnglishRecognition()" ontouchend="stopRecognition()" class="bg-amber-500 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg hover:bg-amber-600 active:bg-red-600 transition-colors select-none">
+                            <span class="mr-2">🎤</span>按住說話
+                        </button>
+                        <button onclick="getNextWord()" class="bg-teal-500 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg hover:bg-teal-600 transition-colors">
+                            換下一個
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="t1-feedback-area" class="hidden text-center p-4 sm:p-6 bg-amber-50 rounded-lg space-y-3">
+                    <p class="text-base sm:text-lg">你唸的是：<span id="t1-recognition-output" class="font-semibold text-amber-800"></span></p>
+                    <div id="t1-star-rating" class="star-rating flex justify-center">
+                        <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+                    </div>
+                    <p id="t1-encouragement" class="text-lg sm:text-xl font-bold text-amber-900"></p>
+                    <p id="t1-tries-message" class="text-red-600 font-bold text-base sm:text-lg hidden"></p>
+                </div>
+                
+                <div id="t1-history-area" class="hidden pt-6 border-t">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                        <div>
+                            <h3 class="text-xl sm:text-2xl font-bold text-gray-800">練習紀錄</h3>
+                            <p id="t1-progress-display" class="text-gray-600 font-semibold"></p>
+                             <p id="t1-total-stars" class="text-amber-600 font-bold text-lg mt-1"></p>
+                        </div>
+                        <button onclick="exportPracticeHistory()" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg text-sm sm:text-base hover:bg-blue-600 transition-colors self-start">匯出單字</button>
+                    </div>
+                    <div id="t1-history-list" class="space-y-2 max-h-60 overflow-y-auto bg-gray-50 p-4 rounded-lg">
+                        <!-- Practiced words will be listed here -->
+                    </div>
+                    <div class="text-center mt-4">
+                        <button id="t1-practice-mistakes-btn" onclick="practiceMistakes()" class="hidden bg-red-500 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg hover:bg-red-600 transition-colors">練習錯誤單字</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="message-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+                <div class="bg-white p-8 rounded-lg shadow-xl text-center w-full max-w-md">
+                    <p id="modal-message" class="text-lg font-medium text-gray-800"></p>
+                    <button onclick="hideModal()" class="mt-6 bg-emerald-500 text-white font-bold py-2 px-6 rounded-lg text-lg hover:bg-emerald-600 transition-colors w-full sm:w-auto">
+                        我知道了
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- 全域變數和設定 ---
+        let recognition;
+        let recognitionInProgress = false;
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        // --- 學生資訊 ---
+        let studentClass = '';
+        let studentName = '';
+
+        // --- 功能 1 變數 ---
+        let allWords = [];
+        let wordGroups = [];
+        let currentGroupIndex = -1;
+        let practicedWords = [];
+        let unpracticedWordList = [];
+        let isReviewingMistakes = false;
+        let t1_tryCount = 0;
+
+        const highScorePhrases = [
+            "太棒了！你真是個語言天才！", "發音真標準，繼續加油！", "哇！說得真好！", "給你一個大大的讚！"
+        ];
+        const lowScorePhrases = [
+            "很棒的嘗試！再試一次！", "差一點點，加油！", "別灰心，多唸幾次就會了！", "再努力一下，你可以的！"
+        ];
+        
+        // --- 初始化 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!SpeechRecognition) {
+                showModal("抱歉，您的瀏覽器不支援語音辨識功能，部分核心體驗將無法使用。建議使用電腦版 Chrome 或 Safari 瀏覽器。");
+            }
+            setupWordGroups();
+        });
+
+        // --- 通用函式 ---
+        function showModal(message) {
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('message-modal').classList.remove('hidden');
+        }
+
+        function hideModal() {
+            document.getElementById('message-modal').classList.add('hidden');
+        }
+
+        /**
+         * A modern and robust way to request microphone permission once.
+         * @returns {Promise<boolean>} - True if permission is granted, false otherwise.
+         */
+        async function initMicrophonePermission() {
+             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showModal("您的瀏覽器不支援麥克風功能。");
+                return false;
+            }
+            try {
+                // This will trigger the browser prompt if permission is not yet granted.
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // We don't need to use the stream, so we can stop it immediately.
+                stream.getTracks().forEach(track => track.stop());
+                return true; // Permission granted
+            } catch (err) {
+                console.error("Microphone permission error:", err);
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    showModal("您已封鎖麥克風權限。請點擊網址列旁的圖示，並允許此網站存取您的麥克風，然後重新整理頁面。");
+                } else {
+                    showModal("無法取得麥克風權限，語音功能將無法使用。");
+                }
+                return false; // Permission denied or error
+            }
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.85;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                showModal("抱歉，您的瀏覽器不支援語音朗讀功能。");
+            }
+        }
+
+        function displayFeedback(stars) {
+            const starContainer = document.getElementById('t1-star-rating');
+            const encouragementEl = document.getElementById('t1-encouragement');
+            const feedbackArea = document.getElementById('t1-feedback-area');
+            
+            Array.from(starContainer.children).forEach((star, index) => {
+                star.classList.toggle('filled', index < stars);
+            });
+            
+            if (stars >= 4) {
+                encouragementEl.textContent = highScorePhrases[Math.floor(Math.random() * highScorePhrases.length)];
+            } else {
+                encouragementEl.textContent = lowScorePhrases[Math.floor(Math.random() * lowScorePhrases.length)];
+            }
+            
+            feedbackArea.classList.remove('hidden');
+        }
+        
+        function levenshteinDistance(a, b) {
+            const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
+            for (let i = 0; i <= a.length; i += 1) matrix[0][i] = i;
+            for (let j = 0; j <= b.length; j += 1) matrix[j][0] = j;
+            for (let j = 1; j <= b.length; j += 1) {
+                for (let i = 1; i <= a.length; i += 1) {
+                    const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
+                    matrix[j][i] = Math.min(
+                        matrix[j][i - 1] + 1,
+                        matrix[j - 1][i] + 1,
+                        matrix[j - 1][i - 1] + indicator,
+                    );
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+        
+        function handleRecognitionError(event) {
+            let errorMsg = "";
+            switch (event.error) {
+                case 'no-speech': errorMsg = "聽不到聲音喔！請在按下麥克風後，靠近一點，然後再試一次。"; break;
+                case 'aborted': break;
+                case 'not-allowed':
+                case 'service-not-allowed': errorMsg = "無法使用麥克風。請點擊網址列旁的圖示，並允許此網站存取您的麥克風。"; break;
+                case 'network': errorMsg = "網路錯誤導致語音辨識失敗，請檢查您的網路連線。"; break;
+                default: errorMsg = `語音辨識發生未知錯誤 (${event.error})，請稍後再試。`; break;
+            }
+            if (errorMsg) showModal(errorMsg);
+        }
+
+        // --- 學生與練習流程控制 ---
+        async function startPractice() {
+            studentClass = document.getElementById('student-class-input').value.trim();
+            studentName = document.getElementById('student-name-input').value.trim();
+
+            if (!studentClass || !studentName) {
+                showModal("請務必輸入班級和姓名喔！");
+                return;
+            }
+            
+            // Request permission here, only once.
+            const permissionGranted = await initMicrophonePermission();
+            if (permissionGranted) {
+                document.getElementById('user-info-area').classList.add('hidden');
+                document.getElementById('main-practice-container').classList.remove('hidden');
+            }
+        }
+
+        function setupWordGroups() {
+            const rawWordList = `"a","一個"\n"about","大約;關於..."\n"actor","男演員"\n"actress","女演員"\n"after","在...之後"\n"afternoon","下午"\n"again","再一次、又一次"\n"airplane","飛機"\n"airport","機場"\n"all","全部的"\n"always","總是、永遠"\n"an","一個"\n"and","和"\n"angry","生氣的"\n"animal","動物"\n"answer","回答"\n"apple","蘋果"\n"April","四月"\n"arm","手臂"\n"art","美術、藝術"\n"ask","問"\n"at","在..."\n"August","八月"\n"aunt","阿姨、姑姑..."\n"away","離開"\n"baby","嬰兒"\n"back","向後、回原處"\n"back","背"\n"bad","不好的、壞的"\n"bag","袋子"\n"ball","球"\n"banana","香蕉"\n"bank","銀行"\n"baseball","棒球"\n"basketball","籃球"\n"bathroom","浴室"\n"be","是"\n"beach","海灘"\n"bear","熊"\n"beautiful","美麗的"\n"because","因為"\n"bed","床"\n"bedroom","臥房"\n"bee","蜜蜂"\n"beef","牛肉"\n"before","在...之前"\n"behind","在...後面"\n"bicycle","腳踏車"\n"big","大的"\n"bike","腳踏車"\n"bird","鳥"\n"birthday","生日"\n"bite","咬"\n"black","黑色的"\n"blackboard","黑板"\n"blue","藍色的"\n"boat","船"\n"book","書"\n"bookstore","書店"\n"bored","覺得無聊的"\n"boring","令人無聊的"\n"both","兩個都"\n"bottle","瓶子"\n"box","箱子"\n"boy","男孩"\n"bread","麵包"\n"breakfast","早餐"\n"brother","哥哥、弟弟"\n"brown","咖啡色的"\n"brush","刷"\n"bus","公車"\n"bus stop","公車站"\n"busy","忙碌的"\n"but","但是"\n"butterfly","蝴蝶"\n"buy","買"\n"by","在...旁邊"\n"bye","再見"\n"cake","蛋糕"\n"call","打電話"\n"can","罐子"\n"can","可以"\n"candy","糖果"\n"cap","棒球帽"\n"car","車子"\n"card","卡片"\n"cat","貓"\n"cellphone","手機"\n"chair","椅子"\n"chicken","雞"\n"chicken","雞肉"\n"Chinese","中文"\n"chocolate","巧克力"\n"chopsticks","筷子"\n"Christmas","聖誕節"\n"class","課;班級"\n"classroom","教室"\n"clean","清理"\n"clean","乾淨的"\n"climb","爬"\n"clock","時鐘"\n"close","關"\n"clothes","衣服"\n"cloudy","多雲的"\n"coat","外套"\n"coffee","咖啡"\n"coke","可樂"\n"cold","感冒"\n"cold","寒冷的"\n"color","顏色"\n"come","來"\n"computer","電腦"\n"cook","廚師"\n"cook","做飯"\n"cookies","餅乾"\n"cool","清涼的"\n"cool","涼爽的"\n"cousin","堂兄弟姊妹"\n"cow","乳牛"\n"cry","哭"\n"cup","杯子"\n"cute","可愛的"\n"dad","爸爸"\n"daddy","爸爸"\n"dance","跳舞"\n"daughter","女兒"\n"day","天"\n"December","十二月"\n"department store","百貨公司"\n"desk","書桌"\n"different","不一樣的"\n"dining room","餐廳"\n"dinner","晚餐"\n"dirty","髒的"\n"dish","盤子"\n"do","做"\n"doctor","醫生"\n"dog","狗"\n"doll","玩偶"\n"dollar","元"\n"door","門"\n"Dragon Boat Festival","端午節"\n"draw","畫"\n"dream","夢"\n"dress","洋裝"\n"drink","喝"\n"drive","開車"\n"driver","司機"\n"drum","鼓"\n"duck","鴨子"\n"duck","鴨肉"\n"dumpling","水餃"\n"ear","耳朵"\n"early","早的"\n"Easter","復活節"\n"easy","簡單的"\n"eat","吃"\n"egg","蛋"\n"eight","八"\n"eighteen","十八"\n"eighty","八十"\n"elephant","大象"\n"eleven","十一"\n"email","電子郵件"\n"English","英文"\n"enjoy","享受"\n"eraser","橡皮擦"\n"evening","傍晚"\n"every","每一個"\n"excited","覺得興奮的"\n"exciting","令人興奮的"\n"excuse me","不好意思"\n"eye","眼睛"\n"face","臉"\n"fall","掉落"\n"fall","秋天"\n"family","家庭、家人"\n"fan","電扇"\n"farmer","農夫"\n"fast","快速的"\n"father","爸爸"\n"favorite","最喜歡的"\n"February","二月"\n"feel","感覺"\n"feet","腳(複數)"\n"fifteen","十五"\n"fifty","五十"\n"find","找"\n"fine","很好的"\n"fire station","消防站"\n"first","第一"\n"fish","釣魚"\n"fish","魚肉"\n"fish","魚"\n"five","五"\n"floor","地板"\n"flower","花"\n"fly","飛"\n"food","食物"\n"foot","腳"\n"football","足球"\n"for","給、為了"\n"fork","叉子"\n"forty","四十"\n"four","四"\n"fourteen","十四"\n"free","免費的"\n"French fries","薯條"\n"Friday","星期五"\n"fridge","電冰箱"\n"friend","朋友"\n"frog","青蛙"\n"from","從..."\n"fruit","水果"\n"full","飽的"\n"fun","有趣的"\n"fun","樂趣"\n"game","遊戲、比賽"\n"garden","花園"\n"get","得到"\n"gift","禮物"\n"girl","女孩"\n"give","給"\n"glass","玻璃杯"\n"glasses","眼鏡"\n"glue","膠水"\n"go","去"\n"good","好的"\n"goodbye","再見"\n"grandfather","爺爺"\n"grandma","奶奶"\n"grandmother","奶奶"\n"grandpa","爺爺"\n"grape","葡萄"\n"gray","灰色的"\n"great","很棒的"\n"green","綠色的"\n"grow","成長"\n"hair","頭髮"\n"Halloween","萬聖節"\n"hamburger","漢堡"\n"hand","手"\n"happy","開心的"\n"hard","困難的"\n"hat","帽子"\n"have","有"\n"he","他"\n"head","頭"\n"headache","頭痛"\n"heavy","重的"\n"hello","哈囉"\n"help","幫助"\n"her","她的"\n"her","她"\n"here","這裡"\n"hi","嗨"\n"high","高的"\n"hike","健行"\n"him","他(受詞)"\n"hippo","河馬"\n"his","他的"\n"hit","打"\n"home","家"\n"homework","回家作業"\n"hope","希望"\n"horse","馬"\n"hospital","醫院"\n"hot","燙的"\n"hot","熱的"\n"house","房子"\n"how","如何"\n"hundred","一百"\n"hungry","餓的"\n"hurry","趕快"\n"hurt","受傷"\n"I","我"\n"ice cream","冰淇淋"\n"in","在...裡面"\n"in front of","在...前面"\n"inside","在...裡面"\n"interesting","有趣的"\n"it","它"\n"its","它的"\n"jacket","夾克"\n"January","一月"\n"Japan","日本"\n"job","工作"\n"juice","果汁"\n"July","七月"\n"jump","跳"\n"June","六月"\n"key","鑰匙"\n"kid","小孩"\n"kitchen","廚房"\n"kite","風箏"\n"knife","刀子"\n"know","知道"\n"koala","無尾熊"\n"lake","湖"\n"lamp","燈"\n"last","最後的"\n"late","晚的"\n"laugh","笑"\n"lazy","懶惰的"\n"left","左邊"\n"leg","腿"\n"lemon","檸檬"\n"let's","讓我們..."\n"library","圖書館"\n"light","輕的"\n"like","喜歡"\n"lion","獅子"\n"listen","聽"\n"live","住"\n"living room","客廳"\n"long","長的"\n"look","看"\n"love","愛"\n"lunch","午餐"\n"mad","生氣的"\n"mail","信"\n"mailman","郵差"\n"make","做"\n"man","男人"\n"many","許多"\n"March","三月"\n"marker","麥克筆"\n"market","市場"\n"math","數學"\n"May","五月"\n"maybe","也許"\n"me","我(受詞)"\n"meal","餐"\n"meet","遇見"\n"men","男人(複數)"\n"mice","老鼠(複數)"\n"milk","牛奶"\n"miss","想念"\n"Miss","小姐"\n"mom","媽媽"\n"mommy","媽媽"\n"Monday","星期一"\n"money","錢"\n"monkey","猴子"\n"month","月"\n"moon","月亮"\n"Moon Festival","中秋節"\n"mop","拖地"\n"more","更多"\n"morning","早上"\n"mother","媽媽"\n"motorcycle","摩托車"\n"mountain","山"\n"mouse","老鼠"\n"mouth","嘴巴"\n"movie","電影"\n"movie theater","電影院"\n"Mr.","先生"\n"Mrs.","太太"\n"MRT","捷運"\n"much","許多"\n"museum","博物館"\n"music","音樂"\n"my","我的"\n"name","名字"\n"near","靠近"\n"need","需要"\n"never","不曾"\n"new","新的"\n"next to","在...旁邊"\n"nice","好的"\n"night","晚上"\n"nine","九"\n"nineteen","十九"\n"ninety","九十"\n"no","不"\n"noodles","麵"\n"nose","鼻子"\n"not","不"\n"nothing","沒有東西"\n"November","十一月"\n"now","現在"\n"number","數字"\n"nurse","護士"\n"o'clock","...點鐘"\n"October","十月"\n"of","...的"\n"off","離開"\n"office","辦公室"\n"OK","好的"\n"old","老的"\n"on","在...上面"\n"one","一"\n"only","只有"\n"open","開"\n"orange","橘子"\n"orange","橘色的"\n"other","其他的"\n"our","我們的"\n"out","向外"\n"outside","在...外面"\n"over","在...上方"\n"paint","畫畫"\n"pair","一雙"\n"panda","大貓熊"\n"pants","長褲"\n"paper","紙"\n"parent","父母"\n"park","公園"\n"party","派對"\n"PE","體育"\n"peach","桃子"\n"pen","筆"\n"pencil","鉛筆"\n"people","人們"\n"person","人"\n"pet","寵物"\n"photo","照片"\n"piano","鋼琴"\n"pick up","撿起"\n"picture","圖片"\n"pie","派"\n"pig","豬"\n"pink","粉紅色的"\n"pizza","披薩"\n"plane","飛機"\n"play","玩"\n"please","請"\n"pocket","口袋"\n"police officer","警察"\n"police station","警察局"\n"pork","豬肉"\n"post office","郵局"\n"pretty","漂亮的"\n"pumpkin","南瓜"\n"purple","紫色的"\n"put","放"\n"question","問題"\n"quiet","安靜的"\n"rabbit","兔子"\n"rain","下雨"\n"rain","雨水"\n"rainbow","彩虹"\n"rainy","下雨的"\n"read","閱讀"\n"ready","準備好的"\n"really","真正地"\n"red","紅色的"\n"refrigerator","電冰箱"\n"restaurant","餐廳"\n"restroom","洗手間"\n"rice","米飯"\n"ride","騎"\n"right","右邊"\n"right","對的"\n"river","河流"\n"robot","機器人"\n"ruler","尺"\n"run","跑"\n"sad","傷心的"\n"salad","沙拉"\n"sale","特價"\n"sandwich","三明治"\n"Saturday","星期六"\n"say","說"\n"school","學校"\n"science","科學"\n"scooter","輕型機車"\n"sea","大海"\n"season","季節"\n"second","第二"\n"see","看見"\n"September","九月"\n"seven","七"\n"seventeen","十七"\n"seventy","七十"\n"she","她"\n"sheep","綿羊"\n"shelf","架子"\n"ship","船"\n"shirt","襯衫"\n"shoes","鞋子"\n"shop","商店"\n"short","短的"\n"short","矮的"\n"shorts","短褲"\n"show","展示"\n"shower","淋浴"\n"sick","生病的"\n"sing","唱歌"\n"singer","歌手"\n"sister","姊妹"\n"sit","坐"\n"six","六"\n"sixteen","十六"\n"sixty","六十"\n"skirt","裙子"\n"sky","天空"\n"sleep","睡覺"\n"slow","慢的"\n"small","小的"\n"smart","聰明的"\n"smell","聞"\n"snake","蛇"\n"snow","雪"\n"snow","下雪"\n"so","所以"\n"soccer","足球"\n"socks","襪子"\n"sofa","沙發"\n"soldier","軍人"\n"some","一些"\n"sometimes","有時候"\n"son","兒子"\n"song","歌曲"\n"sorry","對不起"\n"soup","湯"\n"speak","說"\n"spell","拼寫"\n"spider","蜘蛛"\n"spoon","湯匙"\n"sport","運動"\n"spring","春天"\n"stand","站"\n"star","星星"\n"start","開始"\n"station","車站"\n"still","仍然"\n"stop","停"\n"store","商店"\n"story","故事"\n"strawberry","草莓"\n"street","街道"\n"strong","強壯的"\n"student","學生"\n"study","學習"\n"summer","夏天"\n"sun","太陽"\n"Sunday","星期日"\n"sunny","晴朗的"\n"supermarket","超級市場"\n"sure","確定的"\n"sweater","毛衣"\n"sweep","掃"\n"sweet","甜的"\n"swim","游泳"\n"table","桌子"\n"Taiwan","臺灣"\n"take","拿"\n"talk","說話"\n"tall","高的"\n"taste","嚐起來"\n"taxi","計程車"\n"tea","茶"\n"teacher","老師"\n"teeth","牙齒(複數)"\n"telephone","電話"\n"television","電視"\n"tell","告訴"\n"ten","十"\n"test","考試"\n"than","比"\n"thank","感謝"\n"that","那個"\n"the","這、那"\n"their","他們的"\n"them","他們(受詞)"\n"then","然後"\n"there","那裡"\n"these","這些"\n"they","他們"\n"thin","瘦的"\n"thing","東西"\n"third","第三"\n"thirsty","口渴的"\n"thirteen","十三"\n"thirty","三十"\n"this","這個"\n"those","那些"\n"three","三"\n"Thursday","星期四"\n"ticket","票"\n"tiger","老虎"\n"time","時間"\n"tired","疲累的"\n"to","到..."\n"today","今天"\n"together","一起"\n"tomorrow","明天"\n"too","也、太"\n"tooth","牙齒"\n"toothache","牙痛"\n"touch","觸碰"\n"towel","毛巾"\n"toy","玩具"\n"train","火車"\n"trash","垃圾"\n"tree","樹"\n"trip","旅行"\n"truck","卡車"\n"try","嘗試"\n"T-shirt","T恤"\n"Tuesday","星期二"\n"turn","轉彎"\n"turtle","烏龜"\n"TV","電視"\n"twelve","十二"\n"twenty","二十"\n"two","二"\n"typhoon","颱風"\n"UK","英國"\n"umbrella","傘"\n"uncle","叔叔、舅舅..."\n"under","在...下面"\n"up","向上"\n"us","我們(受詞)"\n"USA","美國"\n"usually","通常"\n"vacation","假期"\n"very","非常"\n"wait","等待"\n"waiter","男服務生"\n"waitress","女服務生"\n"wake","醒來"\n"walk","走路"\n"wall","牆壁"\n"want","想要"\n"warm","溫暖的"\n"wash","洗"\n"watch","看"\n"watch","手錶"\n"water","水"\n"watermelon","西瓜"\n"way","路、方法"\n"we","我們"\n"wear","穿、戴"\n"weather","天氣"\n"Wednesday","星期三"\n"week","星期"\n"welcome","歡迎"\n"well","好的"\n"wet","濕的"\n"whale","鯨魚"\n"what","什麼"\n"when","何時"\n"where","在哪裡"\n"which","哪一個"\n"white","白色的"\n"who","誰"\n"whose","誰的"\n"why","為什麼"\n"will","將會"\n"win","贏"\n"wind","風"\n"window","窗戶"\n"windy","風大的"\n"winter","冬天"\n"with","和...一起"\n"woman","女人"\n"women","女人(複數)"\n"wonderful","很棒的"\n"word","字"\n"work","工作"\n"worker","工作者"\n"worry","擔心"\n"write","寫"\n"year","年"\n"yellow","黃色的"\n"yes","是"\n"yesterday","昨天"\n"yo-yo","溜溜球"\n"you","你、你們"\n"young","年輕的"\n"your","你的、你們的"\n"yummy","好吃的"\n"zebra","斑馬"\n"zero","零"\n"zoo","動物園"`;
+            
+            allWords = rawWordList.split('\n').map(line => {
+                const parts = line.replace(/"/g, '').split(',');
+                return { english: parts[0], chinese: parts[1] };
+            }).filter(word => word.english && word.chinese && word.english.length > 1);
+
+            const groupSize = 50;
+            for (let i = 0; i < allWords.length; i += groupSize) {
+                wordGroups.push(allWords.slice(i, i + groupSize));
+            }
+
+            const groupContainer = document.getElementById('t1-group-selection');
+            groupContainer.innerHTML = '';
+            wordGroups.forEach((group, index) => {
+                const button = document.createElement('button');
+                button.textContent = `Group ${index + 1}`;
+                button.className = 'group-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300';
+                button.onclick = () => selectGroup(index);
+                groupContainer.appendChild(button);
+            });
+        }
+        
+        function selectGroup(index) {
+            currentGroupIndex = index;
+            document.getElementById('t1-practice-area').classList.remove('hidden');
+            
+            const buttons = document.querySelectorAll('#t1-group-selection .group-btn');
+            buttons.forEach((btn, i) => btn.classList.toggle('active', i === index));
+
+            initializeWordPractice(index);
+        }
+
+        function initializeWordPractice(groupIndex) {
+            unpracticedWordList = [...wordGroups[groupIndex].map(w => w.chinese)];
+            practicedWords = [];
+            isReviewingMistakes = false;
+            
+            document.getElementById('t1-result-area').classList.add('hidden');
+            document.getElementById('t1-feedback-area').classList.add('hidden');
+            document.getElementById('t1-input').value = '';
+            
+            updatePracticeHistory();
+        }
+        
+        function updateProgressDisplay() {
+            if (currentGroupIndex === -1) return;
+            const practicedCount = practicedWords.length;
+            const totalCount = wordGroups[currentGroupIndex].length;
+            document.getElementById('t1-progress-display').textContent = `練習進度：${practicedCount} / ${totalCount}`;
+        }
+
+        function updateTotalStars() {
+            const totalStars = practicedWords.reduce((sum, word) => sum + (word.stars || 0), 0);
+            document.getElementById('t1-total-stars').textContent = `總星星數：${totalStars} ★`;
+        }
+
+        function updatePracticeHistory() {
+            const historyArea = document.getElementById('t1-history-area');
+            if (currentGroupIndex === -1 || practicedWords.length === 0) {
+                historyArea.classList.add('hidden');
+                return;
+            }
+            
+            historyArea.classList.remove('hidden');
+            const historyList = document.getElementById('t1-history-list');
+            const practiceMistakesBtn = document.getElementById('t1-practice-mistakes-btn');
+            
+            historyList.innerHTML = '';
+            [...practicedWords].reverse().forEach(word => {
+                const item = document.createElement('div');
+                item.className = 'grid grid-cols-3 items-center p-2 border-b gap-2';
+                const chineseWordClass = word.isIncorrect ? 'text-red-500 font-bold' : 'text-gray-700';
+                const starsDisplay = word.stars ? `<span class="text-amber-500 text-lg">${'★'.repeat(word.stars)}</span>` : '';
+                
+                item.innerHTML = `<p class="${chineseWordClass}">${word.chinese}</p>
+                                  <p class="font-semibold text-gray-900">${word.english}</p>
+                                  <p class="text-right">${starsDisplay}</p>`;
+                historyList.appendChild(item);
+            });
+
+            const hasMistakes = practicedWords.some(word => word.isIncorrect);
+            practiceMistakesBtn.classList.toggle('hidden', !hasMistakes);
+            
+            updateProgressDisplay();
+            updateTotalStars();
+        }
+
+        function exportPracticeHistory() {
+            if (practicedWords.length === 0) {
+                showModal("沒有練習紀錄可以匯出。");
+                return;
+            }
+
+            // 統計星星
+            const starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0, 0: 0 };
+            practicedWords.forEach(word => {
+                starCounts[word.stars || 0]++;
+            });
+
+            let textContent = `英文單字練習報告\n`;
+            textContent += `==================\n`;
+            textContent += `班級：${studentClass}\n`;
+            textContent += `姓名：${studentName}\n`;
+            textContent += `練習群組：Group ${currentGroupIndex + 1}\n`;
+            textContent += `==================\n\n`;
+            
+            textContent += `星星統計：\n`;
+            textContent += `- 5顆星：${starCounts[5]} 題\n`;
+            textContent += `- 4顆星：${starCounts[4]} 題\n`;
+            textContent += `- 3顆星：${starCounts[3]} 題\n\n`;
+
+            textContent += `練習詳情：\n`;
+            textContent += `==================\n`;
+            practicedWords.forEach(word => {
+                let status = `(${word.stars || 0}顆星)`;
+                if (word.stars < 5) {
+                    status += " - 請多練習";
+                }
+                textContent += `${word.chinese}: ${word.english} ${status}\n`;
+            });
+
+            const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${studentClass}_${studentName}_單字報告_Group${currentGroupIndex + 1}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        async function getNextWord() {
+            if (unpracticedWordList.length === 0) {
+                if (isReviewingMistakes) {
+                    showModal("錯誤的單字都練習完囉！");
+                    isReviewingMistakes = false;
+                    unpracticedWordList = wordGroups[currentGroupIndex]
+                        .filter(word => !practicedWords.some(p => p.chinese === word.chinese))
+                        .map(w => w.chinese);
+                } else {
+                    showModal("太厲害了！你已經練習完這個群組的所有單字！");
+                }
+                return;
+            }
+            const randomIndex = Math.floor(Math.random() * unpracticedWordList.length);
+            const randomWord = unpracticedWordList.splice(randomIndex, 1)[0];
+            document.getElementById('t1-input').value = randomWord;
+            await translateAndSpeak();
+        }
+
+        async function translateAndSpeak() {
+            const chineseText = document.getElementById('t1-input').value.trim();
+            if (!chineseText) { showModal("請先輸入中文單字！"); return; }
+            
+            const wordData = allWords.find(w => w.chinese === chineseText);
+            if (!wordData) {
+                showModal("這個單字不在目前的題庫中，請試試別的單字。");
+                return;
+            }
+            const englishText = wordData.english;
+
+            document.getElementById('t1-chinese-output').textContent = chineseText;
+            document.getElementById('t1-english-output').textContent = englishText.trim();
+            document.getElementById('t1-result-area').classList.remove('hidden');
+            document.getElementById('t1-feedback-area').classList.add('hidden');
+            document.getElementById('t1-tries-message').classList.add('hidden');
+            document.getElementById('t1-record-btn').disabled = false;
+            t1_tryCount = 0;
+            speak(englishText.trim());
+
+            const existingWordIndex = practicedWords.findIndex(word => word.chinese === chineseText);
+            if (existingWordIndex === -1) {
+                practicedWords.push({ chinese: chineseText, english: englishText.trim(), isIncorrect: false, stars: 0 });
+            }
+            updatePracticeHistory();
+        }
+
+        function repeatAudio(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            if (text) speak(text);
+        }
+        
+        // This is a simplified function that assumes permission has been granted.
+        function simpleStartRecognition(lang, onResultCallback, uiElements) {
+             if (recognitionInProgress) return;
+            if (!SpeechRecognition) {
+                showModal("瀏覽器不支援語音辨識");
+                return;
+            }
+            recognitionInProgress = true;
+            // Update UI
+            if (uiElements.recordBtn) {
+                uiElements.recordBtn.textContent = "正在聆聽...";
+                uiElements.recordBtn.classList.add('bg-red-500');
+            }
+            if (uiElements.micButton) {
+                uiElements.micButton.disabled = true;
+                uiElements.micButton.classList.add('text-red-500');
+            }
+            
+            recognition = new SpeechRecognition();
+            recognition.lang = lang;
+            recognition.onresult = (event) => onResultCallback(event.results[0][0].transcript);
+            recognition.onerror = handleRecognitionError;
+            recognition.onend = () => {
+                recognitionInProgress = false;
+                // Reset UI
+                if (uiElements.recordBtn) {
+                    uiElements.recordBtn.textContent = "🎤 按住說話";
+                    uiElements.recordBtn.classList.remove('bg-red-500');
+                }
+                if (uiElements.micButton) {
+                    uiElements.micButton.disabled = false;
+                    uiElements.micButton.classList.remove('text-red-500');
+                }
+            };
+            recognition.start();
+        }
+
+        function startChineseRecognition() {
+            const onResultCallback = (transcript) => {
+                document.getElementById('t1-input').value = transcript;
+            };
+            const uiElements = { micButton: document.getElementById('t1-mic-btn') };
+            simpleStartRecognition('zh-TW', onResultCallback, uiElements);
+        }
+        
+        // This is the onmousedown handler
+        function startEnglishRecognition() {
+            if (t1_tryCount >= 3) return;
+            const uiElements = { recordBtn: document.getElementById('t1-record-btn') };
+            simpleStartRecognition('en-US', processRecognitionResult, uiElements);
+        }
+
+        function stopRecognition() {
+            if (recognitionInProgress && recognition) {
+                recognition.stop();
+            }
+        }
+        
+        // Helper for number word conversion
+        const numberWordMap = {
+            '80': 'eighty', '18': 'eighteen', '8': 'eight',
+            '30': 'thirty', '13': 'thirteen', '3': 'three',
+            '40': 'forty', '14': 'fourteen', '4': 'four',
+            '50': 'fifty', '15': 'fifteen', '5': 'five',
+            '60': 'sixty', '16': 'sixteen', '6': 'six',
+            '70': 'seventy', '17': 'seventeen', '7': 'seven',
+            '90': 'ninety', '19': 'nineteen', '9': 'nine',
+            '10': 'ten', '11': 'eleven', '12': 'twelve', '20': 'twenty',
+            '1': 'one', '2': 'two', '100': 'hundred', '0': 'zero'
+        };
+
+        function processRecognitionResult(transcript) {
+            t1_tryCount++;
+            const targetText = document.getElementById('t1-english-output').textContent.toLowerCase().trim();
+            document.getElementById('t1-recognition-output').textContent = transcript;
+            let normalizedTranscript = transcript.toLowerCase().trim().replace(/[.,!?]/g, '');
+            
+            // NEW: Convert recognized digits to words if they match our map
+            if (numberWordMap[normalizedTranscript]) {
+                normalizedTranscript = numberWordMap[normalizedTranscript];
+            }
+            
+            const distance = levenshteinDistance(normalizedTranscript, targetText);
+            const similarity = 1 - (distance / Math.max(normalizedTranscript.length, targetText.length));
+
+            let stars = 0;
+            let isCorrect = false;
+
+            if (similarity >= 0.9) {
+                stars = 5;
+                isCorrect = true;
+            } else if (similarity >= 0.6) {
+                stars = 4;
+                isCorrect = true;
+            } else {
+                stars = 3;
+                isCorrect = false;
+            }
+
+            displayFeedback(stars);
+            
+            const currentWordIndex = practicedWords.findIndex(w => w.chinese === document.getElementById('t1-chinese-output').textContent);
+            if (currentWordIndex > -1) {
+                practicedWords[currentWordIndex].isIncorrect = !isCorrect;
+                if (stars > (practicedWords[currentWordIndex].stars || 0)) {
+                    practicedWords[currentWordIndex].stars = stars;
+                }
+                if(isCorrect) {
+                    practicedWords[currentWordIndex].isIncorrect = false;
+                }
+            }
+            
+            updatePracticeHistory();
+            
+            const recordBtn = document.getElementById('t1-record-btn');
+            const triesMessage = document.getElementById('t1-tries-message');
+
+            if (isCorrect) {
+                triesMessage.classList.add('hidden');
+                recordBtn.disabled = true;
+            } else {
+                if (t1_tryCount >= 3) {
+                    triesMessage.textContent = '機會用完了，請按「換下一個」練習新單字吧！';
+                    triesMessage.classList.remove('hidden');
+                    recordBtn.disabled = true;
+                }
+            }
+        }
+
+        function practiceMistakes() {
+            const mistakes = practicedWords.filter(word => word.isIncorrect);
+            if (mistakes.length === 0) {
+                showModal("太棒了，這個群組沒有錯誤的單字需要練習！");
+                return;
+            }
+            isReviewingMistakes = true;
+            unpracticedWordList = mistakes.map(word => word.chinese);
+            
+            practicedWords = practicedWords.filter(word => !word.isIncorrect);
+            
+            updatePracticeHistory();
+            showModal(`準備練習 ${mistakes.length} 個錯誤的單字！`);
+            getNextWord();
+        }
+    </script>
+</body>
+</html>
